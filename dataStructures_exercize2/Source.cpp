@@ -85,7 +85,7 @@ void getInputFromUser(int& n, int& k, string& inName, string& outName) {
 int partition(DynamicArray<long int>& arr, int left, int right) {
 	int pivot = left;
 	int index = right - 1, tmpIndex;
-	double temp;
+	long int temp;
 
 	while (pivot != index) {
 		if (pivot<index && arr[pivot] >arr[index]) {
@@ -122,7 +122,7 @@ void quickSort(DynamicArray<long int>& arr, int left, int right) {
 
 	if (left < right) {							// there is still elements to sort
 		pivot = partition(arr, left, right);
-		quickSort(arr, left, pivot - 1);		// sort the elements that are left to the pivot
+		quickSort(arr, left, pivot);			// sort the elements that are left to the pivot
 		quickSort(arr, pivot + 1, right);		// sort the elements that are right to the pivot
 	}
 }
@@ -131,6 +131,7 @@ void kWayMerge(DynamicArray<long int>& arr, int n, int k) {
 
 	if (n <= k || k==1) {					// need to sort the array with quick sort
 		quickSort(arr, 0, arr.size());
+		int x = 10;
 	}
 	else {
 	
@@ -141,12 +142,12 @@ void kWayMerge(DynamicArray<long int>& arr, int n, int k) {
 		for (int i = 0; i < k; i++) {		// split arr to k sub-arrays
 			DynamicArray<long int> *subArr = new DynamicArray<long int>(high);		// make the sub-array
 			if (i == k - 1) {
-				for (int j = 0; j < buttom; j++) {
+				for (int j = 0; j < high; j++) {
 					subArr->push_back(arr[readIndex++]);
 				}
 			}
 			else {	// i<k-1
-				for (int j = 0; j < high; j++) {
+				for (int j = 0; j < buttom ; j++) {
 					subArr->push_back(arr[readIndex++]);
 				}
 			}
