@@ -84,3 +84,7 @@ void Heap::insert(Data& item) {
 
 	ptr[i] = item;
 }
+
+bool Heap::isEmpty() {
+	return heapSize == 0;		// if the size of the heap is 0 then the heap is empty
+}

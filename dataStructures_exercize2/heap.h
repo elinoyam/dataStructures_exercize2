@@ -2,9 +2,9 @@
 #include "dynamicArray.h"
 
 typedef struct data {
-	int key;
+	long int key;
 	int index;
-	DynamicArray<int>* arr;
+	DynamicArray<long int>* arr;
 
 }Data;
 
@@ -30,5 +30,6 @@ public:
 	Data Min();
 	Data deleteMin();
 	void insert(Data& item);
+	bool isEmpty();
 };
 
