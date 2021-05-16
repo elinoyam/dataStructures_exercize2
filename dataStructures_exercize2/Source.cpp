@@ -21,6 +21,15 @@ void getCompleteValues(int n, int k, int& high, int& buttom);
 // and then merge them all together using heap to one result array in the right order
 void kWayMerge(DynamicArray<long int>& arr, int n, int k);
 
+
+void checkProgram(DynamicArray<long int>& arr, int size) {
+	cout <<endl << "checking program.." << endl;
+	for (int i = 0; i < size - 1; i++) {
+		if (arr[i] > arr[i + 1])
+			cout << "problem in: " << i << " and " << i + 1 << endl;
+	}
+}
+
 int main() {
 	
 	int n, k;
@@ -51,6 +60,7 @@ int main() {
 		outputFile << arr[i] << endl;
 	}
 	outputFile.close();
+	checkProgram(arr,n);
 	} 	catch (invalid_argument e) {
 		cout << "wrong input." << endl;
 	}	catch (fstream::failure e) {
@@ -60,6 +70,7 @@ int main() {
 
 	return 0;
 }
+
 
 void getInputFromUser(int& n, int& k, string& inName, string& outName) {
 
@@ -108,9 +119,9 @@ int partition(DynamicArray<long int>& arr, int left, int right) {
 			pivot = index;
 			index = tmpIndex - 1; // update to the next number in the array
 		}
-		else if (pivot < index && arr[pivot] < arr[index]) // no need to make a swap
+		else if (pivot < index && arr[pivot] <= arr[index]) // no need to make a swap
 			index--; // updating the index 
-		else if (pivot > index && arr[pivot] > arr[index])// no need to make a swap
+		else if (pivot > index && arr[pivot] >= arr[index])// no need to make a swap
 			index++; // updating the index 
 	} // exit while
 
@@ -131,7 +142,6 @@ void kWayMerge(DynamicArray<long int>& arr, int n, int k) {
 
 	if (n <= k || k==1) {					// need to sort the array with quick sort
 		quickSort(arr, 0, arr.size());
-		int x = 10;
 	}
 	else {
 	
@@ -139,18 +149,22 @@ void kWayMerge(DynamicArray<long int>& arr, int n, int k) {
 		int high, buttom, readIndex=0;
 		getCompleteValues(n, k, high, buttom);
 
+		DynamicArray<DynamicArray<long int>*> subArrays(k);
+
+		for (int i = 0; i < k; i++) {
+			subArrays[i] = new DynamicArray<long int>(high);
+			for (int j = 0; j < buttom; j++) {
+				subArrays[i]->push_back(arr[readIndex++]);
+			}
+		}
+		int j = 0;
+		while (readIndex < n && j<k) {
+			subArrays[j]->push_back(arr[readIndex++]);
+			j++;
+		}
+
 		for (int i = 0; i < k; i++) {		// split arr to k sub-arrays
-			DynamicArray<long int> *subArr = new DynamicArray<long int>(high);		// make the sub-array
-			if (i == k - 1) {
-				for (int j = 0; j < high; j++) {
-					subArr->push_back(arr[readIndex++]);
-				}
-			}
-			else {	// i<k-1
-				for (int j = 0; j < buttom ; j++) {
-					subArr->push_back(arr[readIndex++]);
-				}
-			}
+			DynamicArray<long int>* subArr = subArrays[i];
 			kWayMerge(*subArr, subArr->size(), k);		// recursive call on the sub-array
 			// enter the sub-array to the merge heap :
 			Data data;
@@ -159,6 +173,7 @@ void kWayMerge(DynamicArray<long int>& arr, int n, int k) {
 			data.key = (*subArr)[0];
 			mergeHeap.insert(data);						
 		}
+
 		arr.clear();
 		// merge with the heap
 		while (!mergeHeap.isEmpty()) {
@@ -170,6 +185,11 @@ void kWayMerge(DynamicArray<long int>& arr, int n, int k) {
 				mergeHeap.insert(min);
 			}
 		}	
+
+		//for (int i = 0; i < k; i++) 
+		//	delete[] subArrays[i];
+	
+		
 	}
 }
 
