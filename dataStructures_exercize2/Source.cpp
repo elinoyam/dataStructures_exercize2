@@ -1,76 +1,42 @@
-#include <iostream>
-#include <fstream>
-#include <string>
-#include "dynamicArray.h"
-#include "heap.h"
-using namespace std;
+#include "SourceHeader.h"
 
-
-
-// This function is getting all the needed input from the user so we could get and sort the data.
-void getInputFromUser(int& n, int& k, string& inName, string& outName);
-// This is partition function is for the quickSort function
-int partition(DynamicArray<long int>& arr, int left, int right);
-// This function is sorting a given array with the quick sort algorithm
-// we'll use this function to sort every array with a size smaller then K
-void quickSort(DynamicArray<long int>& arr, int left, int right);
-// This function is to get the high and buttom complete values of n / k
-// so we would know how many elements to put in each sub-array
-void getCompleteValues(int n, int k, int& high, int& buttom);
-// This function is diveding the given array to K sub-arrays, sort each of the sub-arrays
-// and then merge them all together using heap to one result array in the right order
-void kWayMerge(DynamicArray<long int>& arr, int n, int k);
-
-
-void checkProgram(DynamicArray<long int>& arr, int size) {
-	cout <<endl << "checking program.." << endl;
-	for (int i = 0; i < size - 1; i++) {
-		if (arr[i] > arr[i + 1])
-			cout << "problem in: " << i << " and " << i + 1 << endl;
-	}
-}
-
-int main() {
-	
-	int n, k;
+void getDataFromFile(string inputName, int n, DynamicArray<long int>& arr) {
+	ifstream inputFile(inputName);
 	long int num;
-	string inputName, outputName;
-	ifstream inputFile;
-	ofstream outputFile;
-	
-	
-	try{
-	getInputFromUser(n, k, inputName, outputName);
-	DynamicArray<long int> arr(n);
-	
-	inputFile.open(inputName);
 
 	for (int i = 0; i < n; i++) { //// read all the data
-		inputFile >> num;
+		string inp;
+		getline(inputFile, inp);
+		if (!checkIfNumber(inp))
+			throw invalid_argument("wrong input.");
+
+		num = atoi(inp.c_str());
 		arr.push_back(num);
 	}
-	
+
+	if (!inputFile.eof()) {		// check if there is any data in the file unread
+		string checkEnd;
+		getline(inputFile, checkEnd);	// check if not white space
+		if (!inputFile.eof())
+			throw invalid_argument("wrong input.");
+	}
+
 	inputFile.close();
-
-	//// call the algorithm to sort the data
-	kWayMerge(arr, n, k);
-	outputFile.open(outputName);
-	
-	for (int i = 0; i < n; i++) { //// write the sorted data
-		outputFile << arr[i] << endl;
-	}
-	outputFile.close();
-	checkProgram(arr,n);
-	} 	catch (invalid_argument e) {
-		cout << "wrong input." << endl;
-	}	catch (fstream::failure e) {
-		cout << "wrong input." << endl;
-	}
-
-
-	return 0;
 }
 
+bool checkIfNumber(string str) {
+	if (str.empty())			// check that the file didn't end
+		return false;
+	int size = str.size();
+	int i = 0;
+	if (str[0] == '-')
+		i++;
+	for (; i < size; i++)			// check that all the chars are digits
+		if (str[i] < '0' || str[i]>'9')
+			return false;
+
+	return true;
+}
 
 void getInputFromUser(int& n, int& k, string& inName, string& outName) {
 
@@ -146,61 +112,61 @@ void kWayMerge(DynamicArray<long int>& arr, int n, int k) {
 	else {
 	
 		Heap mergeHeap(k);
-		int high, buttom, readIndex=0;
+		int high, buttom;
 		getCompleteValues(n, k, high, buttom);
 
 		DynamicArray<DynamicArray<long int>*> subArrays(k);
-
-		for (int i = 0; i < k; i++) {
-			subArrays[i] = new DynamicArray<long int>(high);
-			for (int j = 0; j < buttom; j++) {
-				subArrays[i]->push_back(arr[readIndex++]);
-			}
-		}
-		int j = 0;
-		while (readIndex < n && j<k) {
-			subArrays[j]->push_back(arr[readIndex++]);
-			j++;
-		}
-
-		for (int i = 0; i < k; i++) {		// split arr to k sub-arrays
-			DynamicArray<long int>* subArr = subArrays[i];
-			kWayMerge(*subArr, subArr->size(), k);		// recursive call on the sub-array
-			// enter the sub-array to the merge heap :
-			Data data;
-			data.arr = subArr;
-			data.index = 0;
-			data.key = (*subArr)[0];
-			mergeHeap.insert(data);						
-		}
-
-		arr.clear();
-		// merge with the heap
-		while (!mergeHeap.isEmpty()) {
-			Data min = mergeHeap.deleteMin();
-			arr.push_back(min.key);
-			min.index++;
-			if (min.index < min.arr->size()) {
-				min.key = (*min.arr)[min.index];
-				mergeHeap.insert(min);
+		splitToSubaArrays(arr, subArrays, n, k, high, buttom);
+		
+		enterSubArraysToHeap(subArrays, n, k, mergeHeap);
+		arr.clear();		// empty the array
+		
+		while (!mergeHeap.isEmpty()) {							// merge all the K sub-arrays to the main array using heap
+			Data min = mergeHeap.deleteMin();	  // take out the current minimum value
+			arr.push_back(min.key);				  // enter the min value to the main array
+			min.index++;						  // update the index to the next in the sub-array
+			if (min.index < min.arr->size()) {	  // if the index is still in the sub-array boundries
+				min.key = (*min.arr)[min.index];  // update the key to the next element
+				mergeHeap.insert(min);			  // re-insert the sub-array to the heap
 			}
 		}	
-
-		//for (int i = 0; i < k; i++) 
-		//	delete[] subArrays[i];
-	
-		
 	}
 }
 
 void getCompleteValues(int n, int k, int& high, int& buttom) {
-	if (n % k == 0) {
+	if (n % k == 0) {				// if n is a multification of k
 		high = buttom = n / k;
 	}
 	else {
-		buttom = n / k;
-		while (n % k != 0)
-			n++;
-		high = n / k;
+		buttom = n / k;		// div
+		high =  buttom + 1;
+	}
+}
+
+void splitToSubaArrays(DynamicArray<long int>& arr, DynamicArray<DynamicArray<long int>*>& subArrays,int n, int k, int high, int buttom) {
+	int readIndex = 0;
+	for (int i = 0; i < k; i++) {			// allocate the sub-arrays and enter buttom complete values
+		subArrays[i] = new DynamicArray<long int>(high);
+		for (int j = 0; j < buttom; j++) {
+			subArrays[i]->push_back(arr[readIndex++]);
+		}
+	}
+	int j = 0;
+	while (readIndex < n && j < k) {			// if there is any elements left, enter one element to each sub-array from the start until in ends
+		subArrays[j]->push_back(arr[readIndex++]);
+		j++;
+	}
+}
+
+void enterSubArraysToHeap(DynamicArray<DynamicArray<long int>*>& subArrays, int n, int k, Heap& mergeHeap) {
+	for (int i = 0; i < k; i++) {							// for each sub-array
+		DynamicArray<long int>* subArr = subArrays[i];
+		kWayMerge(*subArr, subArr->size(), k);				// recursive call on the sub-array
+		// enter the sub-array to the merge heap :
+		Data data;
+		data.arr = subArr;
+		data.index = 0;
+		data.key = (*subArr)[0];
+		mergeHeap.insert(data);
 	}
 }

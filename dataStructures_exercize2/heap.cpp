@@ -61,8 +61,8 @@ Data Heap::Min() {
 }
 
 Data Heap::deleteMin() {
-	if (heapSize < 1);
-		// handle error
+	if (heapSize < 1)
+		throw logic_error("Can't delete minimum value when the heap is empty.");
 	Data min = ptr[0];
 	heapSize--;
 	ptr[0] = ptr[heapSize];
@@ -72,8 +72,8 @@ Data Heap::deleteMin() {
 }
 
 void Heap::insert(Data& item) {
-	if (heapSize == pSize);
-		// handle error
+	if (heapSize == pSize)
+		throw logic_error("Can't add more values when the heap is full.");
 	int i = heapSize;
 	heapSize++;
 
